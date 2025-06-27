@@ -18,14 +18,15 @@ export const PlaceLists = (props) => {
     <ul className="place-list">
       {props.items.map((place) => (
         <PlaceItem
-          key={place.id}
-          id={place.id}
-          image={place.imageURL}
+          key={place._id}
+          id={place._id}
+          image={place.image}
           title={place.title}
           description={place.description}
           address={place.address}
-          createrId={place.createrId}
+          createrId={place.creator}
           coordinates={place.location}
+          onDelete={props.onDeletePlace}
         />
       ))}
     </ul>

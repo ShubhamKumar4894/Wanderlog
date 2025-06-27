@@ -1,23 +1,44 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import "./PlaceItem.css";
 import Card from "../../shared/components/UIelements/Card";
 import Button from "../../shared/components/FormElements/Button";
+import ErrorModal from "../../shared/components/UIelements/ErrorModal";
+import LoadingSpinner from "../../shared/components/UIelements/LoadingSpinner";
+import { AuthContext } from "../../shared/context/Auth-context";
 import { Modal } from "../../shared/components/UIelements/Modal";
 import MapComponent from "../../shared/components/UIelements/Map";
+import { useHttpClient } from "../hooks/Http-hook";
 
 export const PlaceItem = (props) => {
   const [showMap, setShowMap] = useState(false);
   const [showDeleteConfirmation, setshowDeleteConfirmation] = useState(false);
+  const { isLoadingState, error, sendRequest, clearError } = useHttpClient();
+  const Auth = useContext(AuthContext);
   const showDeleteHandler = () => {
     setshowDeleteConfirmation(true);
   };
   const closeDeleteHandler = () => {
     setshowDeleteConfirmation(false);
   };
+  const confirmDeleteHandler = async () => {
+    setshowDeleteConfirmation(false);
+    try {
+      await sendRequest(
+        `${import.meta.env.VITE_BACKEND_URL}/places/delete/${props.id}`,
+        "DELETE",
+        null,
+        {Authorization: "Bearer " + Auth.token}
+      );
+      props.onDelete(props.id);
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
   const openMapHandler = () => setShowMap(true);
   const closeMapHandler = () => setShowMap(false);
   return (
     <>
+      <ErrorModal error={error} onClear={clearError} />
       <Modal
         show={showMap}
         onCancel={closeMapHandler}
@@ -37,8 +58,12 @@ export const PlaceItem = (props) => {
         footerClass="place-item__modal-actions"
         footer={
           <>
-            <Button inverse onClick={closeDeleteHandler}>CANCEL</Button>
-            <Button danger onClick={closeDeleteHandler}>DELETE</Button>
+            <Button inverse onClick={closeDeleteHandler}>
+              CANCEL
+            </Button>
+            <Button danger onClick={confirmDeleteHandler}>
+              DELETE
+            </Button>
           </>
         }
       >
@@ -47,8 +72,9 @@ export const PlaceItem = (props) => {
 
       <li className="place-item">
         <Card className="place-item__content">
+          {isLoadingState && <LoadingSpinner asOverlay />}
           <div className="place-item__image">
-            <img src={props.image} alt={props.title} />
+            <img src={`${import.meta.env.VITE_ASSET_URL}/${props.image}`} alt={props.title} />
           </div>
           <div className="place-item__info">
             <h2>{props.title}</h2>
@@ -59,8 +85,14 @@ export const PlaceItem = (props) => {
             <Button inverse onClick={openMapHandler}>
               VIEW ON MAP
             </Button>
-            <Button to={`/places/${props.id}`}>EDIT</Button>
-            <Button danger onClick={showDeleteHandler}>DELETE</Button>
+            {Auth.userId === props.creatorId && (
+              <Button to={`/places/${props.id}`}>EDIT</Button>
+            )}
+            {Auth.userId === props.creatorId && (
+              <Button danger onClick={showDeleteHandler}>
+                DELETE
+              </Button>
+            )}
           </div>
         </Card>
       </li>

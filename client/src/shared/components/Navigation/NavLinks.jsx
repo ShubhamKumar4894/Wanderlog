@@ -5,14 +5,18 @@ import { useContext } from "react";
 import { AuthContext } from "../../context/Auth-context";
 
 export const NavLinks = () => {
-  const { isLoggedIn,logout } = useContext(AuthContext);
+  const { isLoggedIn, logout,userId,loadingState} = useContext(AuthContext);
+  
+console.log("userid from context:", userId);
+console.log("isLoggedIn:", isLoggedIn);
+
   return (
     <ul className="nav-links">
       <NavLink to="/" end>
         <li>ALL USERS</li>
       </NavLink>
-      {isLoggedIn && (
-        <NavLink to="/u1/places">
+      {isLoggedIn &&  (
+        <NavLink to={`/${userId}/places`}>
           <li>MY PLACES</li>
         </NavLink>
       )}
@@ -21,11 +25,13 @@ export const NavLinks = () => {
           <li>ADD PLACES</li>
         </NavLink>
       )}
-      {!isLoggedIn&& <NavLink to="/auth">
-        <li>AUTHENTICATE</li>
-      </NavLink>}
+      {!isLoggedIn && (
+        <NavLink to="/auth">
+          <li>AUTHENTICATE</li>
+        </NavLink>
+      )}
       {isLoggedIn && (
-        <NavLink onClick={()=>logout()} to="/">
+        <NavLink onClick={() => logout()} to="/">
           <li>LOGOUT</li>
         </NavLink>
       )}

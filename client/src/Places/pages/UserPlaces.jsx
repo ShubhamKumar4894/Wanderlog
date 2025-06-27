@@ -1,37 +1,47 @@
-import React from 'react'
-import { useParams } from 'react-router-dom'
-import { PlaceLists } from '../components/PlaceLists'
-import indiaGate from '../../assets/IndiaGate.png'
-const DUMMY_PLACES=[
-    {
-        id:'U1',
-        title:'India Gate',
-        description:'This is just another dummy place description',
-        imageURL:indiaGate,
-        address:'Kartavya Path, India Gate, New Delhi, Delhi 110001',
-        location:{
-            lat:28.612912,
-            lng:77.2269348
-        },
-        creator:'u1'
-    },
-    {
-        id:'U2',
-        title:'Random Place two ',
-        description:'This is just second dummy place description',
-        imageURL:indiaGate,
-        address:'Kartavya Path, India Gate, New Delhi, Delhi 110001',
-        location:{
-            lat:28.612912,
-            lng:77.2269348
-        },
-        creator:'u2'
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { PlaceLists } from "../components/PlaceLists";
+import ErrorModal from "../../shared/components/UIelements/ErrorModal";
+import LoadingSpinner from "../../shared/components/UIelements/LoadingSpinner";
+import { useHttpClient } from "../hooks/Http-hook";
+
+
+
+export const UserPlaces =()=> {
+  const [loadedPlaces, setLoadedPlaces] = useState();
+  const { isLoadingState, error, sendRequest, clearError } = useHttpClient();
+  
+  const userId = useParams().userId;
+
+  useEffect(() => {
+    if(!userId|| userId===undefined) {
+      return;
     }
-]
-export const UserPlaces = () => {
-    const userId=useParams().userId;
-    const loadedPlaces= DUMMY_PLACES.filter(place=>place.creator==userId);
+    const fetchPlaces = async () => {
+      try {
+        const responseData = await sendRequest(
+          `${import.meta.env.VITE_APP_BACKEND_URL}/places/user/${userId}`
+        );
+        console.log(responseData)
+        setLoadedPlaces(responseData.place);
+      } catch (error) {}
+    };
+    fetchPlaces();
+  }, [sendRequest, userId]);
+
+  const placeDeleteHandler=(deletedPlaceId)=>{
+    setLoadedPlaces(prevPlaces=>prevPlaces.filter(place=>place._id!==deletedPlaceId));
+  }
+
   return (
-    <PlaceLists items={loadedPlaces}/>
-  )
-}
+    <>
+      <ErrorModal error={error} onClear={clearError} />
+      {isLoadingState && (
+        <div className="center">
+          <LoadingSpinner />
+        </div>
+      )}
+      {!isLoadingState && loadedPlaces &&<PlaceLists items={loadedPlaces} onDeletePlace={placeDeleteHandler}/>}
+    </>
+  );
+};

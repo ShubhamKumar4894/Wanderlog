@@ -9,14 +9,14 @@ export const UserLists = ({items}) => {
     );
   }
   return (
-    <ul className="list-none mx-0 my-auto p-0 w-[90%] max-w-[50rem] flex justify-center flex-wrap">
+    <ul className="list-none mx-0 my-auto p-0  w-full flex justify-center flex-wrap">
       {items.map((user) => (
         <UserItems
           key={user.id}
           id={user.id}
           image={user.image}
           name={user.name}
-          placeCount={user.places}
+          placeCount={user.places.length}
         />
       ))}
     </ul>
